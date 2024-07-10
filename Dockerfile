@@ -1,17 +1,11 @@
-ARG NODE_VERSION=20.13.1
-FROM node:${NODE_VERSION}-alpine
+FROM node:16
 
 WORKDIR /usr/src/app
 
-RUN --mount=type=bind,source=package.json,target=package.json \
-    --mount=type=bind,source=yarn.lock,target=yarn.lock \
-    --mount=type=cache,target=/root/.yarn \
-    yarn install --production --frozen-lockfile
+COPY ./app .
 
-USER node
-
-COPY . .
+RUN npm install
 
 EXPOSE 80
 
-CMD yarn run nodemon --inspect=0.0.0.0:9229 app.ts
+CMD yarn nodemon --signal SIGINT --legacy-watch --inspect=0.0.0.0:9229 --nolazy src/router.ts

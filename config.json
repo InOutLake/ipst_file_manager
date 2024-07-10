@@ -1,0 +1,25 @@
+{
+  "db": 
+  {
+    "database": "db",
+    "host": "db",
+    "user": "postgres",
+    "password": "postgres",
+    "port": 5432,
+    "max_tries": 10
+  },
+  "jwt": 
+  {
+    "accessSecret": "some_secret"
+  },
+  "email": 
+  {
+    "email": "example@example.ex",
+    "password": "pwd"
+  },
+  "server":
+  {
+    "host": "localhost",
+    "port": 80
+  }
+}
