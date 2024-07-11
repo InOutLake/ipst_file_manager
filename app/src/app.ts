@@ -2,14 +2,11 @@ import express from "express";
 import swaggerUi from "swagger-ui-express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import path from "path";
 import YAML from "yamljson";
-import bcrypt from "bcrypt";
-import { validatePassword, validateUser } from "./types/validation";
-import { createUser, findUsers } from "./types/UserRepository";
 import { migrateToLatest } from "./migrate";
 import { post_register, post_login } from "./routes";
 import { authMiddleware } from "./authMiddleware";
+import { config } from "./config";
 
 let app = express();
 

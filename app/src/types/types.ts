@@ -16,9 +16,10 @@ export type NewUser = Insertable<UserTable>;
 export type UserUpdate = Updateable<UserTable>;
 
 export interface FileTable {
-  id: number;
+  id: Generated<number>;
   userId: number;
   parentId: number | null;
+  is_folder: boolean;
   name: string;
 }
 export type File = Selectable<FileTable>;

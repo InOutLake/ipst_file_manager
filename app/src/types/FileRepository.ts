@@ -5,7 +5,8 @@ export async function createFile(File: NewFile) {
   await db
     .insertInto("File")
     .values(File)
-    .execute();
+    .returningAll()
+    .executeTakeFirstOrThrow();
 }
 
 export async function findFileById(id: number) {
@@ -34,10 +35,28 @@ export async function findFiles(criteria: Partial<File>) {
   if (criteria.name) {
     query = query.where("name", "=", criteria.name);
   }
-  return await db
-    .selectFrom("File")
-    .selectAll()
-    .execute();
+  return await query.selectAll().execute();
+}
+
+export async function findFile(criteria: Partial<File>) {
+  let query = db.selectFrom("File");
+
+  if (criteria.id) {
+    query = query.where("id", "=", criteria.id);
+  }
+
+  if (criteria.userId) {
+    query = query.where("userId", "=", criteria.userId);
+  }
+
+  if (criteria.parentId) {
+    query = query.where("parentId", "=", criteria.parentId);
+  }
+
+  if (criteria.name) {
+    query = query.where("name", "=", criteria.name);
+  }
+  return await query.selectAll().executeTakeFirst();
 }
 
 export async function updateFile(id: number, updateWith: FileUpdate) {

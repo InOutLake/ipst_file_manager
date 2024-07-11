@@ -5,10 +5,13 @@ export async function up(db: Kysely<any>): Promise<void> {
     .createTable("File")
     .addColumn("id", "serial", col => col.primaryKey())
     .addColumn("userId", "integer", col => col.notNull())
-    .addColumn("parentId", "integer")
+    .addColumn("parentId", "integer") // Define the column first
     .addColumn("name", "varchar(255)", col => col.notNull())
-    .addColumn("parentless", "boolean", col => col.defaultTo(false))
-    .addUniqueConstraint("unique_File_name", ["parentId", "name"])
+    .addColumn("is_folder", "boolean", col => col.defaultTo(true))
+    .addUniqueConstraint("unique_file_name", ["parentId", "name"])
+    .addForeignKeyConstraint("parent_file", ["parentId"], "File", ["id"], cb =>
+      cb.onDelete("cascade")
+    )
     .execute();
 }
 

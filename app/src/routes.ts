@@ -18,6 +18,7 @@ export async function post_register(req, res) {
     return res.status(400).send((err as Error).message);
   }
 }
+
 // TODO custom redirect
 export async function post_login(req, res) {
   try {
@@ -35,5 +36,22 @@ export async function post_login(req, res) {
     res.redirect("/");
   } catch (error) {
     return res.status(400).send((error as Error).message);
+  }
+}
+
+export async function get_logout(req, res) {
+  try {
+    res.clearCookie("accessToken");
+    res.clearCookie("user");
+    res.redirect("/login");
+  } catch (error) {
+    return res.status(400).send((error as Error).message);
+  }
+}
+
+export async function get_folder(req, res) {
+  try {
+    path = req.params.folder;
+    
   }
 }

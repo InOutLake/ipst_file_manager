@@ -17,13 +17,14 @@ export async function authMiddleware(
     const expires = new Date(Date.now() + 15 * 60 * 1000);
     res.cookie("user", user, {
       expires: expires,
-      httpOnly: true,
+      httpOnly: true
     });
     next();
   } catch (error) {
     if (error instanceof TokenExpiredError) {
       {
-        req.cookies["user"] = null;
+        res.clearCookie("accessToken");
+        res.clearCookie("user");
         console.log("User have been logged out");
         res.redirect("/login");
       }
@@ -32,4 +33,12 @@ export async function authMiddleware(
       res.send((error as Error).message);
     }
   }
+}
+
+export async function fileParserMiddleware(req: Request, res: Response) {
+  try {
+    const path = req.params.path;
+    const 
+  }
+
 }
