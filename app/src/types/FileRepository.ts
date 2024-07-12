@@ -2,7 +2,7 @@ import { db } from "../database";
 import { File, NewFile, FileUpdate } from "./types";
 
 export async function createFile(File: NewFile) {
-  await db
+  return await db
     .insertInto("File")
     .values(File)
     .returningAll()

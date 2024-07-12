@@ -1,4 +1,8 @@
 import * as fr from "./types/FileRepository";
+import { User } from "./types/types";
+import * as ur from "./types/UserRepository";
+import * as fs from "fs";
+import Request from "express";
 
 class IncorrectPathError extends Error {
   constructor(path: string, name: string) {
@@ -7,19 +11,19 @@ class IncorrectPathError extends Error {
   }
 }
 
-abstract class AbstractFileManager {
+export abstract class AbstractFileManager {
   abstract createDirectory(path: string, name: string): Promise<void>;
   abstract deleteDirectory(path: string, name: string): Promise<void>;
   abstract getDirectoryContents(path: string): Promise<string[]>;
-  abstract createFile(path: string, name: string): Promise<void>;
+  abstract createFile(path: string, name: string, file: File): Promise<void>;
   abstract deleteFile(path: string, name: string): Promise<void>;
 }
 
-class FileManager extends AbstractFileManager {
-  userId: number;
-  constructor(userId: number) {
+export class FileManager extends AbstractFileManager {
+  user: User;
+  constructor(user: User) {
     super();
-    this.userId = userId;
+    this.user = user;
   }
 
   async getDestinationFolderId(path: string): Promise<number> {
@@ -29,7 +33,7 @@ class FileManager extends AbstractFileManager {
       const cFolder = await fr.findFile({
         name: tree.shift(),
         parentId: parentId,
-        userId: this.userId,
+        userId: this.user.id,
         is_folder: true
       });
       if (!cFolder) {
@@ -44,15 +48,20 @@ class FileManager extends AbstractFileManager {
   async createDirectory(path: string, name: string): Promise<void> {
     try {
       const parentId = await this.getDestinationFolderId(path);
-      fr.createFile({
+      await fs.mkdir(`../users/${this.user.email}/${path}/${name}`, err => {
+        if (err) {
+          throw new Error("Folder creation failed");
+        }
+      });
+      const file = await fr.createFile({
         name: name,
         parentId: parentId,
-        userId: this.userId,
+        userId: this.user.id,
         is_folder: true
       });
       return;
     } catch (e) {
-      console.log(e);
+      throw e;
     }
   }
 
@@ -66,11 +75,14 @@ class FileManager extends AbstractFileManager {
       if (!folderToDelete) {
         throw new IncorrectPathError(path, name);
       }
+      await fs.rm(`../users/${this.user.email}/${path}/${name}`, err => {
+        throw new Error("Folder deletion failed");
+      });
       const folderId = folderToDelete.id;
       fr.deleteFileById(folderId);
       return;
     } catch (e) {
-      console.log(e);
+      throw e;
     }
   }
 
@@ -81,7 +93,7 @@ class FileManager extends AbstractFileManager {
       const folder = await fr.findFile({
         parentId: parentId,
         name: name,
-        userId: this.userId
+        userId: this.user.id
       });
       if (!folder) {
         throw new IncorrectPathError(path, "");
@@ -90,23 +102,25 @@ class FileManager extends AbstractFileManager {
       const files = await fr.findFiles({ parentId: folderId });
       return files.map(file => file.name);
     } catch (e) {
-      console.log(e);
+      throw e;
       return [];
     }
   }
 
+  // TODO couldnt find the way to handle multer file
   async createFile(path: string, name: string): Promise<void> {
     try {
       const parentId = await this.getDestinationFolderId(path);
+
       fr.createFile({
         name: name,
         parentId: parentId,
-        userId: this.userId,
+        userId: this.user.id,
         is_folder: false
       });
       return;
     } catch (e) {
-      console.log(e);
+      throw e;
     }
   }
 
@@ -124,7 +138,7 @@ class FileManager extends AbstractFileManager {
       fr.deleteFileById(folderId);
       return;
     } catch (e) {
-      console.log(e);
+      throw e;
     }
   }
 }

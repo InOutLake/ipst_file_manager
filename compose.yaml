@@ -1,22 +1,22 @@
 version: '3'
 services:
-  authorization_module:
+  file_manager:
     build:
-      context: ./authorization_module
+      context: .
     depends_on:
       - db
     ports:
       - 80:80
       - 9229:9229
     volumes:
-      - ./app:/usr/src/app
+      - ./app/src:/usr/src/app/app/src
 
   db:
     image: postgres:latest
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=db
+      - POSTGRES_DB=file_manager_db
     ports:
       - "5432:5432"
     volumes:

@@ -1,0 +1,138 @@
+openapi: 3.1.0
+info:
+  title: IPST File Manager API
+  version: 1.0.0
+  description: API documentation for IPST File Manager
+servers:
+  - url: http://localhost:80
+paths:
+  /register:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "200":
+          description: Registration successful
+        "400":
+          description: Bad request
+
+  /login:
+    post:
+      summary: Authenticate user
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "200":
+          description: Authentication successful
+        "400":
+          description: Invalid credentials
+
+  /logout:
+    get:
+      summary: Logout user
+      responses:
+        "200":
+          description: Logout successful
+
+  /folderContents:
+    get:
+      summary: Get folder contents
+      parameters:
+        - in: query
+          name: path
+          schema:
+            type: string
+          required: true
+      responses:
+        "200":
+          description: Folder contents retrieved successfully
+        "400":
+          description: Failed to retrieve folder contents
+
+  /createFolder:
+    post:
+      summary: Create a new folder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                path:
+                  type: string
+                name:
+                  type: string
+      responses:
+        "200":
+          description: Folder created successfully
+        "400":
+          description: Failed to create folder
+
+  /deleteFolder:
+    post:
+      summary: Delete a folder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                path:
+                  type: string
+                name:
+                  type: string
+      responses:
+        "200":
+          description: Folder deleted successfully
+        "400":
+          description: Failed to delete folder
+
+  /createFile:
+    post:
+      summary: Upload and create a new file
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                path:
+                  type: string
+      responses:
+        "200":
+          description: File uploaded and created successfully
+        "400":
+          description: Failed to upload and create file
+
+securityDefinitions:
+  bearerAuth:
+    type: apiKey
+    in: header
+    name: Authorization
