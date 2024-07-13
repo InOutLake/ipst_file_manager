@@ -2,6 +2,7 @@ import * as fr from "./types/FileRepository";
 import { User } from "./types/types";
 import * as ur from "./types/UserRepository";
 import * as fs from "fs";
+import * as p from "path";
 import Request from "express";
 
 class IncorrectPathError extends Error {
@@ -34,7 +35,7 @@ export class FileManager extends AbstractFileManager {
         name: tree.shift(),
         parentId: parentId,
         userId: this.user.id,
-        is_folder: true
+        is_folder: true,
       });
       if (!cFolder) {
         throw new IncorrectPathError(path, "");
@@ -45,19 +46,17 @@ export class FileManager extends AbstractFileManager {
   }
 
   // TODO folder name may be included in path. Function could create the whole folder tree
+  // TODO how to make a transaction in this scenario?
   async createDirectory(path: string, name: string): Promise<void> {
     try {
-      const parentId = await this.getDestinationFolderId(path);
-      await fs.mkdir(`../users/${this.user.email}/${path}/${name}`, err => {
-        if (err) {
-          throw new Error("Folder creation failed");
-        }
-      });
+      const fullPath = p.join(this.user.email, path);
+      const parentId = await this.getDestinationFolderId(fullPath);
+      fs.mkdirSync(p.join(__dirname, `../users/${fullPath}/${name}`));
       const file = await fr.createFile({
         name: name,
         parentId: parentId,
         userId: this.user.id,
-        is_folder: true
+        is_folder: true,
       });
       return;
     } catch (e) {
@@ -67,19 +66,20 @@ export class FileManager extends AbstractFileManager {
 
   async deleteDirectory(path: string, name: string): Promise<void> {
     try {
-      const parentId = await this.getDestinationFolderId(path);
+      const fullPath = p.join(this.user.email, path);
+      const parentId = await this.getDestinationFolderId(fullPath);
       const folderToDelete = await fr.findFile({
         parentId: parentId,
-        name: name
+        name: name,
       });
       if (!folderToDelete) {
         throw new IncorrectPathError(path, name);
       }
-      await fs.rm(`../users/${this.user.email}/${path}/${name}`, err => {
-        throw new Error("Folder deletion failed");
+      fs.rmSync(p.join(__dirname, `../users/${fullPath}/${name}`), {
+        recursive: true,
       });
       const folderId = folderToDelete.id;
-      fr.deleteFileById(folderId);
+      fr.deleteFile(folderId);
       return;
     } catch (e) {
       throw e;
@@ -88,19 +88,20 @@ export class FileManager extends AbstractFileManager {
 
   async getDirectoryContents(path: string): Promise<string[]> {
     try {
-      const parentId = await this.getDestinationFolderId(path);
+      const fullPath = p.join(this.user.email, path);
+      const parentId = await this.getDestinationFolderId(fullPath);
       const name = path.split("/").pop();
       const folder = await fr.findFile({
         parentId: parentId,
         name: name,
-        userId: this.user.id
+        userId: this.user.id,
       });
       if (!folder) {
         throw new IncorrectPathError(path, "");
       }
       const folderId = folder.id;
       const files = await fr.findFiles({ parentId: folderId });
-      return files.map(file => file.name);
+      return files.map((file) => file.name);
     } catch (e) {
       throw e;
       return [];
@@ -110,13 +111,13 @@ export class FileManager extends AbstractFileManager {
   // TODO couldnt find the way to handle multer file
   async createFile(path: string, name: string): Promise<void> {
     try {
-      const parentId = await this.getDestinationFolderId(path);
-
+      const fullPath = p.join(this.user.email, path);
+      const parentId = await this.getDestinationFolderId(fullPath);
       fr.createFile({
         name: name,
         parentId: parentId,
         userId: this.user.id,
-        is_folder: false
+        is_folder: false,
       });
       return;
     } catch (e) {
@@ -126,16 +127,18 @@ export class FileManager extends AbstractFileManager {
 
   async deleteFile(path: string, name: string): Promise<void> {
     try {
-      const parentId = await this.getDestinationFolderId(path);
+      const fullPath = p.join(this.user.email, path);
+      const parentId = await this.getDestinationFolderId(fullPath);
       const folderToDelete = await fr.findFile({
         parentId: parentId,
-        name: name
+        name: name,
       });
       if (!folderToDelete) {
         throw new IncorrectPathError(path, name);
       }
+      fs.rmSync(p.join(__dirname, `../users/${fullPath}/${name}`));
       const folderId = folderToDelete.id;
-      fr.deleteFileById(folderId);
+      fr.deleteFile(folderId);
       return;
     } catch (e) {
       throw e;

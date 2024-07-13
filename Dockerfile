@@ -10,5 +10,6 @@ COPY ./config.json .
 RUN npm install
 
 EXPOSE 80
+EXPOSE 9229
 
 CMD yarn nodemon --signal SIGINT --legacy-watch --inspect=0.0.0.0:9229 --nolazy app/src/app.ts

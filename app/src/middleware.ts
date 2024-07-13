@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { JwtPayload, TokenExpiredError } from "jsonwebtoken";
 import { verifyAccessToken } from "./jwt";
 import { findUserById } from "./types/UserRepository";
+import path from "path";
 import multer from "multer";
 
 export async function authMiddleware(
@@ -18,7 +19,7 @@ export async function authMiddleware(
     const expires = new Date(Date.now() + 15 * 60 * 1000);
     res.cookie("user", user, {
       expires: expires,
-      httpOnly: true
+      httpOnly: true,
     });
     next();
   } catch (error) {
@@ -37,12 +38,12 @@ export async function authMiddleware(
 }
 
 const storage = multer.diskStorage({
-  destination: function(req, file, cb) {
-    cb(null, "./uploads/");
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, "../uploads/"));
   },
-  filename: function(req, file, cb) {
+  filename: function (req, file, cb) {
     cb(null, `${Date.now()}-${file.originalname}`);
-  }
+  },
 });
 
 export const upload = multer({ storage });

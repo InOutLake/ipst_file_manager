@@ -60,16 +60,9 @@ export async function findFile(criteria: Partial<File>) {
 }
 
 export async function updateFile(id: number, updateWith: FileUpdate) {
-  await db
-    .updateTable("File")
-    .set(updateWith)
-    .where("id", "=", id)
-    .execute();
+  await db.updateTable("File").set(updateWith).where("id", "=", id).execute();
 }
 
-export async function deleteFileById(id: number): Promise<void> {
-  await db
-    .deleteFrom("File")
-    .where("id", "=", id)
-    .execute();
+export async function deleteFile(id: number): Promise<void> {
+  await db.deleteFrom("File").where("id", "=", id).execute();
 }

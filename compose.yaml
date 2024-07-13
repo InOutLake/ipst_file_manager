@@ -9,7 +9,7 @@ services:
       - 80:80
       - 9229:9229
     volumes:
-      - ./app/src:/usr/src/app/app/src
+      - ./app:/usr/src/app/app
 
   db:
     image: postgres:latest

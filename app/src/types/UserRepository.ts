@@ -31,6 +31,28 @@ export async function findUsers(criteria: Partial<User>) {
   return await query.selectAll().execute();
 }
 
+export async function findUser(criteria: Partial<User>) {
+  let query = db.selectFrom("User");
+
+  if (criteria.id) {
+    query = query.where("id", "=", criteria.id);
+  }
+
+  if (criteria.name) {
+    query = query.where("name", "=", criteria.name);
+  }
+
+  if (criteria.email) {
+    query = query.where("email", "=", criteria.email);
+  }
+
+  if (criteria.password) {
+    query = query.where("password", "=", criteria.password);
+  }
+
+  return await query.selectAll().executeTakeFirst();
+}
+
 export async function findUserById(id: number) {
   return await db
     .selectFrom("User")
