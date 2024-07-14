@@ -1,18 +1,7 @@
 import * as fileR from "./types/FileRepository";
 import * as folderR from "./types/FolderRepository";
-import { User } from "./types/types";
-import * as ur from "./types/UserRepository";
-import * as fs from "fs";
 import * as p from "path";
 import { config } from "./config";
-import Request from "express";
-
-class IncorrectPathError extends Error {
-  constructor(path: string) {
-    super();
-    this.message = `Incorrect path: ${path}`;
-  }
-}
 
 export abstract class AbstractFileManager {
   abstract createDirectoryRecursive(path: string): Promise<string[]>;
@@ -27,51 +16,63 @@ export abstract class AbstractFileManager {
 }
 
 export class DbFileManager extends AbstractFileManager {
-  userId: number;
-  rootParentId: number;
-  fileStoragePath: string;
+  userId?: number;
+  rootParentId?: number;
+  fileStoragePath?: string;
 
-  constructor(userId: number) {
+  /**
+   *  ! Use await obj.initialize() right after constructor
+   * */
+  constructor() {
     super();
-    this.userId = userId;
-    this.fileStoragePath = p.join(__dirname, config.root.uploads);
-    this.initialize().catch(console.error);
   }
 
-  async initialize() {
-    const root = await folderR.findFolder({
-      userId: this.userId,
-      parentId: null,
-    });
-    if (!root) {
-      const message = "Could not find root folder for user=" + this.userId;
-      console.log("Error on FileManager initialization: " + message);
-      throw new Error(message);
+  async initialize(userId: number): Promise<DbFileManager> {
+    try {
+      this.userId = userId;
+      this.fileStoragePath = p.join(__dirname, config.roots.uploads);
+      let root = await folderR.findFolder({
+        userId: this.userId,
+        parentId: null,
+      });
+      if (!root) {
+        root = await folderR.createFolder({
+          userId: this.userId as number,
+          parentId: null,
+          name: `root${this.userId}`,
+        });
+      }
+      this.rootParentId = root.id;
+      return this;
+    } catch (e) {
+      console.log("Error while initializing file manager");
+      throw e;
     }
-    this.rootParentId = root.id;
   }
 
   async getDestinationFolderId(path: string): Promise<number> {
-    const tree = path.split("/");
-    let parentId = this.rootParentId;
-    while (tree.length > 0) {
-      const curFolder = await folderR.findFolder({
-        name: tree.shift(),
-        parentId: parentId,
-        userId: this.userId,
-      });
-      if (!curFolder) {
-        throw new IncorrectPathError(path);
+    try {
+      let parentId = this.rootParentId;
+      let tree = path.split("/");
+      if (path === "") {
+        return this.rootParentId as number;
       }
-      parentId = curFolder.id;
+      while (tree.length > 0) {
+        const curFolder = await folderR.findFolder({
+          name: tree.shift(),
+          parentId: parentId,
+          userId: this.userId,
+        });
+        if (!curFolder) {
+          throw new Error(`Incorrect paht: ${path}`);
+        }
+        parentId = curFolder.id;
+      }
+      return parentId as number;
+    } catch (e) {
+      throw e;
     }
-    return parentId as number;
   }
-
-  // TODO folder name may be included in path. Function could create the whole folder tree
-  // TODO how to make a transaction in this scenario?
-  // TODO should take root folder and owner id only
-  // TODO depricate file system since it is clearly represented in db
 
   async createDirectoryRecursive(path: string): Promise<string[]> {
     try {
@@ -82,7 +83,7 @@ export class DbFileManager extends AbstractFileManager {
       while (que.length > 0) {
         const folderName = que.shift();
         if (!folderName) {
-          throw new IncorrectPathError(path);
+          throw new Error(`Incorrect path ${path}`);
         }
         let folder = await folderR.findFolder({
           parentId: parentId,
@@ -91,13 +92,13 @@ export class DbFileManager extends AbstractFileManager {
         });
         if (!folder) {
           folder = await folderR.createFolder({
-            userId: this.userId,
+            userId: this.userId as number,
             parentId: parentId,
             name: folderName,
           });
+          result.push(`Created folder: ${folder.name}`);
         }
         parentId = folder.id;
-        result.push(`Created folder: ${folder.name}`);
       }
 
       return result;
@@ -142,7 +143,7 @@ export class DbFileManager extends AbstractFileManager {
       fileR.createFile({
         name: name,
         parentId: parentId,
-        userId: this.userId,
+        userId: this.userId as number,
         filename: filename,
       });
       return 0;

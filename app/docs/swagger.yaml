@@ -12,7 +12,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/x-www-form-urlencoded:
+          application/json:
             schema:
               type: object
               properties:
@@ -24,37 +24,34 @@ paths:
                   type: string
       responses:
         "200":
-          description: Registration successful
+          description: Registered successfully
         "400":
           description: Bad request
-
   /login:
     post:
-      summary: Authenticate user
+      summary: User login
       requestBody:
         required: true
         content:
-          application/x-www-form-urlencoded:
+          application/json:
             schema:
               type: object
               properties:
-                username:
+                name:
                   type: string
                 password:
                   type: string
       responses:
         "200":
-          description: Authentication successful
+          description: Logged in successfully!
         "400":
-          description: Invalid credentials
-
+          description: Invalid username or password
   /logout:
     get:
       summary: Logout user
       responses:
         "200":
-          description: Logout successful
-
+          description: Logged out successfully!
   /folderContents:
     get:
       summary: Get folder contents
@@ -63,13 +60,12 @@ paths:
           name: path
           schema:
             type: string
-          required: true
+          description: Path to the directory
       responses:
         "200":
-          description: Folder contents retrieved successfully
+          description: Directory contents
         "400":
-          description: Failed to retrieve folder contents
-
+          description: Error fetching directory contents
   /createFolder:
     post:
       summary: Create a new folder
@@ -82,16 +78,13 @@ paths:
               properties:
                 path:
                   type: string
-                name:
-                  type: string
       responses:
         "200":
           description: Folder created successfully
         "400":
-          description: Failed to create folder
-
+          description: Error creating folder
   /deleteFolder:
-    post:
+    delete:
       summary: Delete a folder
       requestBody:
         required: true
@@ -102,14 +95,11 @@ paths:
               properties:
                 path:
                   type: string
-                name:
-                  type: string
       responses:
         "200":
           description: Folder deleted successfully
         "400":
-          description: Failed to delete folder
-
+          description: Error deleting folder
   /createFile:
     post:
       summary: Upload and create a new file
@@ -125,14 +115,29 @@ paths:
                   format: binary
                 path:
                   type: string
+                name:
+                  type: string
       responses:
         "200":
-          description: File uploaded and created successfully
+          description: File created successfully
         "400":
-          description: Failed to upload and create file
-
-securityDefinitions:
-  bearerAuth:
-    type: apiKey
-    in: header
-    name: Authorization
+          description: Error creating file
+  /deleteFile:
+    delete:
+      summary: Delete a file
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                path:
+                  type: string
+                name:
+                  type: string
+      responses:
+        "200":
+          description: File deleted successfully
+        "400":
+          description: Error deleting file

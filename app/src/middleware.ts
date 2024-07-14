@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { JwtPayload, TokenExpiredError } from "jsonwebtoken";
 import { verifyAccessToken } from "./jwt";
 import { findUserById } from "./types/UserRepository";
+import { config } from "./config";
 import path from "path";
 import multer from "multer";
 
@@ -28,18 +29,18 @@ export async function authMiddleware(
         res.clearCookie("accessToken");
         res.clearCookie("user");
         console.log("User have been logged out");
-        res.redirect("/login");
+        res.status(400).send("Login required");
       }
     } else {
       console.log((error as Error).message);
-      res.send((error as Error).message);
+      res.status(400).send((error as Error).message);
     }
   }
 }
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, "../uploads/"));
+    cb(null, path.join(__dirname, config.roots.uploads));
   },
   filename: function (req, file, cb) {
     cb(null, `${Date.now()}-${file.originalname}`);
