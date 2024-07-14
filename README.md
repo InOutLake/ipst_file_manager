@@ -3,5 +3,5 @@
 Look `localhost/api-docs` for documentation
 
 Test user:
-Login: user
+Login: test_user
 Password: Pwd1234!

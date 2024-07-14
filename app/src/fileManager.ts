@@ -2,6 +2,7 @@ import * as fileR from "./types/FileRepository";
 import * as folderR from "./types/FolderRepository";
 import * as p from "path";
 import { config } from "./config";
+import * as fs from "fs";
 
 export abstract class AbstractFileManager {
   abstract createDirectoryRecursive(path: string): Promise<string[]>;
@@ -164,8 +165,9 @@ export class DbFileManager extends AbstractFileManager {
         throw new Error("No such file or directory");
       }
       const fileId = fileToDelete.id;
+      fs.rmSync(p.join(this.fileStoragePath as string, fileToDelete.filename));
       fileR.deleteFile(fileId);
-      return 1;
+      return 0;
     } catch (e) {
       console.log("Error while deleting file");
       throw e;
