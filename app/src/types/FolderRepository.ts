@@ -1,24 +1,24 @@
 import { db } from "../database";
-import { File, NewFile, FileUpdate } from "./types";
+import { Folder, NewFolder, FolderUpdate } from "./types";
 
-export async function createFile(File: NewFile) {
+export async function createFolder(Folder: NewFolder) {
   return await db
-    .insertInto("File")
-    .values(File)
+    .insertInto("Folder")
+    .values(Folder)
     .returningAll()
     .executeTakeFirstOrThrow();
 }
 
-export async function findFileById(id: number) {
+export async function findFolderById(id: number) {
   return await db
-    .selectFrom("File")
+    .selectFrom("Folder")
     .where("id", "=", id)
     .selectAll()
     .executeTakeFirst();
 }
 
-export async function findFiles(criteria: Partial<File>) {
-  let query = db.selectFrom("File");
+export async function findFolders(criteria: Partial<Folder>) {
+  let query = db.selectFrom("Folder");
 
   if (criteria.id) {
     query = query.where("id", "=", criteria.id);
@@ -36,14 +36,11 @@ export async function findFiles(criteria: Partial<File>) {
     query = query.where("name", "=", criteria.name);
   }
 
-  if (criteria.filename) {
-    query = query.where("filename", "=", criteria.filename);
-  }
   return await query.selectAll().execute();
 }
 
-export async function findFile(criteria: Partial<File>) {
-  let query = db.selectFrom("File");
+export function findFolder(criteria: Partial<Folder>) {
+  let query = db.selectFrom("Folder");
 
   if (criteria.id) {
     query = query.where("id", "=", criteria.id);
@@ -61,16 +58,13 @@ export async function findFile(criteria: Partial<File>) {
     query = query.where("name", "=", criteria.name);
   }
 
-  if (criteria.filename) {
-    query = query.where("filename", "=", criteria.filename);
-  }
-  return await query.selectAll().executeTakeFirst();
+  return query.selectAll().executeTakeFirst();
 }
 
-export async function updateFile(id: number, updateWith: FileUpdate) {
-  await db.updateTable("File").set(updateWith).where("id", "=", id).execute();
+export async function updateFolder(id: number, updateWith: FolderUpdate) {
+  await db.updateTable("Folder").set(updateWith).where("id", "=", id).execute();
 }
 
-export async function deleteFile(id: number): Promise<void> {
-  await db.deleteFrom("File").where("id", "=", id).execute();
+export async function deleteFolder(id: number): Promise<void> {
+  await db.deleteFrom("Folder").where("id", "=", id).execute();
 }
